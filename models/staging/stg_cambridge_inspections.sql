@@ -6,7 +6,7 @@
 }}
 
 WITH source AS (
-    SELECT * FROM {{ source('bronze', 'BRONZE_SANITARY_INSPECTIONS_CAMBRIDGE') }}
+    SELECT * FROM {{ source('bronze', 'bronze_sanitary_inspections_cambridge') }}
 ),
 
 cleaned AS (
@@ -24,7 +24,7 @@ cleaned AS (
         -- Violation details
         CODE_NUMBER AS code_number,
         CODE_DESCRIPTION AS code_description,
-        CODE_CASE_STATUS AS case_status,
+        TRY_CAST(CODE_CASE_STATUS AS VARCHAR) AS case_status,
         
         -- Dates
         TRY_TO_DATE(CASE_OPEN_DATE, 'MM/DD/YYYY') AS case_open_date,
@@ -53,31 +53,30 @@ with_severity AS (
         *,
         CASE
             -- Critical food safety codes (typically 2.xxx, 3.xxx, 4.xxx series)
-            WHEN CODE_NUMBER LIKE '2.%' OR CODE_NUMBER LIKE '3.%' OR CODE_NUMBER LIKE '4.%' THEN 'HIGH'
+            WHEN code_number LIKE '2.%' OR code_number LIKE '3.%' OR code_number LIKE '4.%' THEN 'HIGH'
             -- Structural/maintenance codes (typically 5.xxx, 6.xxx series)
-            WHEN CODE_NUMBER LIKE '5.%' OR CODE_NUMBER LIKE '6.%' THEN 'MEDIUM'
+            WHEN code_number LIKE '5.%' OR code_number LIKE '6.%' THEN 'MEDIUM'
             -- Administrative/minor codes
-            WHEN CODE_NUMBER LIKE '7.%' OR CODE_NUMBER LIKE '8.%' THEN 'LOW'
+            WHEN code_number LIKE '7.%' OR code_number LIKE '8.%' THEN 'LOW'
             -- Default for unknown patterns
             ELSE 'MEDIUM'
         END AS violation_severity,
         
         CASE
-            WHEN CODE_NUMBER LIKE '2.%' OR CODE_NUMBER LIKE '3.%' OR CODE_NUMBER LIKE '4.%' THEN 10
-            WHEN CODE_NUMBER LIKE '5.%' OR CODE_NUMBER LIKE '6.%' THEN 5
-            WHEN CODE_NUMBER LIKE '7.%' OR CODE_NUMBER LIKE '8.%' THEN 2
+            WHEN code_number LIKE '2.%' OR code_number LIKE '3.%' OR code_number LIKE '4.%' THEN 10
+            WHEN code_number LIKE '5.%' OR code_number LIKE '6.%' THEN 5
+            WHEN code_number LIKE '7.%' OR code_number LIKE '8.%' THEN 2
             ELSE 5
         END AS violation_severity_score,
         
         -- Determine if case is resolved
         CASE
-            WHEN CASE_CLOSED_DATE IS NOT NULL THEN TRUE
-            WHEN DATE_CORRECTED IS NOT NULL THEN TRUE
-            WHEN CODE_CASE_STATUS = 'CLOSED' THEN TRUE
+            WHEN case_closed_date IS NOT NULL THEN TRUE
+            WHEN date_corrected IS NOT NULL THEN TRUE
+            WHEN UPPER(case_status) IN ('CLOSED', 'COMPLETE') THEN TRUE
             ELSE FALSE
         END AS is_resolved
         
     FROM cleaned
 )
-
 SELECT * FROM with_severity

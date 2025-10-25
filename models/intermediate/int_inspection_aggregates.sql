@@ -7,9 +7,8 @@
 
 -- STEP 1: Check if int_restaurant_inspections exists and works
 WITH inspection_base AS (
-    SELECT * FROM {{ ref('int_restaurant_inspections') }}
+    SELECT * FROM {{ ref('int_restaurant_inspections_unified') }}
 ),
-
 -- STEP 2: Keep your original aggregation logic
 inspection_trends AS (
     SELECT

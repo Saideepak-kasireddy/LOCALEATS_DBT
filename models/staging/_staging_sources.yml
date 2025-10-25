@@ -3,7 +3,7 @@ version: 2
 sources:
   - name: bronze
     database: LOCEATS_DB 
-    schema: LOCEATS_SCHEMA
+    schema: BRONZE
     description: "Raw data ingested from various APIs"
     tables:
       - name: bronze_yelp_restaurants
