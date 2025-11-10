@@ -13,9 +13,41 @@ models:
     description: "Daily restaurant recommendations with rankings"
     tests:
       - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns: ['restaurant_id', 'recommendation_date']
+          combination_of_columns: ['restaurant_id', 'recommendation_date']
+          
   - name: restaurant_safety_dashboard
     description: "Safety metrics for dashboard reporting"
+    
   - name: restaurant_feature_store
     description: "ML-ready features for recommendation models"
+
+  - name: gold_restaurants_master
+    description: "Unified gold layer table with all restaurant data, scores, and semantic search descriptions"
+    columns:
+      - name: restaurant_id
+        description: "Primary key"
+        tests:
+          - unique
+          - not_null
+      - name: restaurant_name
+        tests:
+          - not_null
+      - name: search_description
+        description: "Rich text description for semantic search embeddings"
+      - name: overall_score
+        tests:
+          - not_null
+      - name: recommendation_tier
+        tests:
+          - accepted_values:
+              values: ['HIGHLY_RECOMMENDED', 'RECOMMENDED', 'AVERAGE', 'BELOW_AVERAGE']
+
+  - name: gold_restaurant_embeddings
+    description: "Vector embeddings for semantic restaurant search"
+    columns:
+      - name: restaurant_id
+        description: "Foreign key to gold_restaurants_master"
+        tests:
+          - not_null
+      - name: description_embedding
+        description: "768-dimensional vector embedding from Snowflake Cortex"

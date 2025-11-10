@@ -1,8 +1,7 @@
+-- models/intermediate/int_restaurant_inspections.sql
 {{
     config(
-        materialized='incremental',
-        unique_key='match_id',
-        on_schema_change='merge_columns'
+        materialized='table'
     )
 }}
 
@@ -12,23 +11,20 @@ WITH restaurants AS (
 
 inspections AS (
     SELECT * FROM {{ ref('stg_health_inspections') }}
-    {% if is_incremental() %}
-    WHERE staging_processed_at >= (SELECT MAX(match_processed_at) FROM {{ this }})
-    {% endif %}
 ),
 
--- Fuzzy matching logic
-name_matching AS (
+-- Match restaurants with inspections
+matched AS (
     SELECT 
         r.restaurant_id,
         r.restaurant_name,
         r.street_address AS restaurant_address,
-        r.city AS restaurant_city,
+        r.postal_code AS restaurant_zip,
         i.inspection_id,
         i.license_no,
-        i.business_name_dba,
+        i.business_name AS inspection_business_name,
         i.street_address AS inspection_address,
-        i.city AS inspection_city,
+        i.postal_code AS inspection_zip,
         i.inspection_date,
         i.inspection_result,
         i.violation_code,
@@ -36,73 +32,30 @@ name_matching AS (
         i.violation_severity_score,
         i.violation_description,
         
-        -- Calculate match confidence scores
+        -- Match confidence score
         CASE
-            -- Exact name match
-            WHEN UPPER(r.restaurant_name) = i.business_name_dba THEN 100
-            WHEN UPPER(r.restaurant_name) = i.business_name_legal THEN 95
-            
-            -- Partial name match
-            WHEN CONTAINS(UPPER(r.restaurant_name), i.business_name_dba) 
-                OR CONTAINS(i.business_name_dba, UPPER(r.restaurant_name)) THEN 85
-            
-            -- Fuzzy name match (Levenshtein distance)
-            WHEN EDITDISTANCE(UPPER(r.restaurant_name), i.business_name_dba) <= 3 THEN 75
-            WHEN EDITDISTANCE(UPPER(r.restaurant_name), i.business_name_dba) <= 5 THEN 60
-            
-            -- Address-based match
-            WHEN UPPER(r.street_address) = UPPER(i.street_address) 
-                AND r.city = i.city THEN 70
-            
-            ELSE 0
-        END AS match_confidence_score,
+            WHEN r.restaurant_name = i.business_name THEN 100
+            WHEN CONTAINS(r.restaurant_name, SPLIT_PART(i.business_name, ' ', 1)) 
+                AND LENGTH(SPLIT_PART(i.business_name, ' ', 1)) > 4 THEN 85
+            WHEN r.street_address = i.street_address AND r.postal_code = i.postal_code THEN 90
+            WHEN SUBSTR(r.restaurant_name, 1, 5) = SUBSTR(i.business_name, 1, 5) THEN 70
+            ELSE 50
+        END AS match_confidence,
         
-        -- Additional matching criteria
-        CASE
-            WHEN r.city = i.city THEN 10
-            ELSE 0
-        END AS location_match_bonus
+        DATEDIFF(day, i.inspection_date, CURRENT_DATE()) AS days_since_inspection
         
     FROM restaurants r
-    CROSS JOIN inspections i
-    WHERE 
-        -- Must be in same city
-        UPPER(r.city) = UPPER(i.city)
-        -- And have some name similarity
+    INNER JOIN inspections i
+        ON r.city = i.city  
+        AND r.postal_code = i.postal_code
         AND (
-            CONTAINS(UPPER(r.restaurant_name), SPLIT_PART(i.business_name_dba, ' ', 1))
-            OR EDITDISTANCE(UPPER(r.restaurant_name), i.business_name_dba) <= 8
-            OR UPPER(r.street_address) = UPPER(i.street_address)
+            r.restaurant_name = i.business_name
+            OR CONTAINS(r.restaurant_name, SPLIT_PART(i.business_name, ' ', 1))
+            OR (r.street_address = i.street_address AND LEFT(r.postal_code, 3) = LEFT(i.postal_code, 3))
         )
-),
-
-scored_matches AS (
-    SELECT
-        *,
-        match_confidence_score + location_match_bonus AS total_match_score,
-        ROW_NUMBER() OVER (
-            PARTITION BY restaurant_id, inspection_id 
-            ORDER BY match_confidence_score + location_match_bonus DESC
-        ) AS match_rank
-    FROM name_matching
-    WHERE match_confidence_score > 50  -- Minimum threshold
+    WHERE i.inspection_date >= DATEADD(year, -3, CURRENT_DATE())
 )
 
-SELECT
-    MD5(CONCAT(restaurant_id, '|', inspection_id)) AS match_id,
-    restaurant_id,
-    restaurant_name,
-    inspection_id,
-    license_no,
-    business_name_dba,
-    inspection_date,
-    inspection_result,
-    violation_code,
-    violation_severity,
-    violation_severity_score,
-    violation_description,
-    total_match_score AS match_confidence,
-    DATEDIFF(day, inspection_date, CURRENT_DATE()) AS days_since_inspection,
-    CURRENT_TIMESTAMP() AS match_processed_at
-FROM scored_matches
-WHERE match_rank = 1
+SELECT * 
+FROM matched
+WHERE match_confidence >= 70

@@ -12,29 +12,27 @@ models:
       - name: restaurant_name
         tests:
           - not_null
-      - name: lat
+      - name: latitude
         tests:
           - not_null
           - dbt_utils.accepted_range:
-              arguments:
-                min_value: 42.2
-                max_value: 42.5
-      - name: lng
+              min_value: 42.2
+              max_value: 42.5
+      - name: longitude
         tests:
           - not_null
           - dbt_utils.accepted_range:
-              arguments:
-                min_value: -71.2
-                max_value: -70.9
-      - name: rating
+              min_value: -71.2
+              max_value: -70.9
+      - name: yelp_rating
         tests:
           - dbt_utils.accepted_range:
-              arguments:
-                min_value: 1.0
-                max_value: 5.0
-                inclusive: true
+              min_value: 1.0
+              max_value: 5.0
+              inclusive: true
+              
   - name: stg_health_inspections
-    description: "Cleaned health inspection data"
+    description: "Cleaned Boston health inspection data"
     columns:
       - name: inspection_id
         tests:
@@ -43,6 +41,31 @@ models:
       - name: license_no
         tests:
           - not_null
+
+  - name: stg_cambridge_inspections
+    description: "Cleaned Cambridge sanitary inspection data"
+    columns:
+      - name: inspection_id
+        description: "Case number from Cambridge system"
+        tests:
+          - not_null
+      - name: establishment_name
+        tests:
+          - not_null
+      - name: latitude
+        tests:
+          - not_null
+      - name: longitude
+        tests:
+          - not_null
+      - name: violation_severity
+        tests:
+          - accepted_values:
+              values: ['HIGH', 'MEDIUM', 'LOW']
+      - name: data_source
+        tests:
+          - accepted_values:
+              values: ['CAMBRIDGE']
 
   - name: stg_mbta_stops
     columns:

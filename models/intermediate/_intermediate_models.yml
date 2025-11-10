@@ -2,13 +2,56 @@ version: 2
 
 models:
   - name: int_restaurant_inspections
-    description: "Restaurants matched with their inspection history"
+    description: "Restaurants matched with their inspection history (Boston only)"
     tests:
       - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns: ['restaurant_id', 'inspection_id']
+          combination_of_columns: ['restaurant_id', 'inspection_id']
+
+  - name: int_restaurant_inspections_cambridge
+    description: "Cambridge/Somerville restaurants matched to sanitary inspections"
+    columns:
+      - name: restaurant_id
+        tests:
+          - not_null
+      - name: inspection_id
+        tests:
+          - not_null
+      - name: match_confidence
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 70
+              max_value: 100
+      - name: data_source
+        tests:
+          - accepted_values:
+              values: ['CAMBRIDGE']
+
+  - name: int_restaurant_inspections_unified
+    description: "Combined Boston and Cambridge inspection data for all restaurants"
+    columns:
+      - name: restaurant_id
+        tests:
+          - not_null
+      - name: inspection_id
+        tests:
+          - not_null
+      - name: data_source
+        tests:
+          - accepted_values:
+              values: ['BOSTON', 'CAMBRIDGE']
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - restaurant_id
+            - inspection_date
+            - violation_code
+
   - name: int_restaurant_transit_access
     description: "Restaurant proximity to transit stops"
+
+  - name: int_inspection_aggregates
+    description: "Aggregated inspection metrics by restaurant"
+
   - name: int_restaurant_scores
     description: "Calculated scores for each restaurant"
     columns:
@@ -19,8 +62,5 @@ models:
       - name: overall_score
         tests:
           - dbt_utils.accepted_range:
-              arguments:
-                min_value: 0
-                max_value: 100
-  - name: int_inspection_aggregates
-    description: "Aggregated inspection metrics by restaurant"
+              min_value: 0
+              max_value: 100
