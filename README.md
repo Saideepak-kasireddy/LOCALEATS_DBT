@@ -2,7 +2,7 @@
 
 > An intelligent multi-agent system for personalized restaurant recommendations in the Boston/Cambridge/Somerville area, combining LLM intelligence with verified database operations to deliver data-grounded dining recommendations.
 
-**Northeastern University - Data Engineering Capstone | December 2025**
+**Northeastern University - Gen Ai Project | December 2025**
 
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?style=flat&logo=snowflake&logoColor=white)](https://www.snowflake.com/)
