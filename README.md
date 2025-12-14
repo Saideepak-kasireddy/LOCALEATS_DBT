@@ -2,7 +2,7 @@
 
 > An intelligent multi-agent system for personalized restaurant recommendations in the Boston/Cambridge/Somerville area, combining LLM intelligence with verified database operations to deliver data-grounded dining recommendations.
 
-**Northeastern University - Gen Ai Project | December 2025**
+**Northeastern University - Gen AI Project | December 2025**
 
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?style=flat&logo=snowflake&logoColor=white)](https://www.snowflake.com/)
@@ -20,13 +20,18 @@ Traditional restaurant discovery fails to deliver truly personalized, context-aw
 
 **Our Solution:** Multi-agent RAG system that grounds LLM intelligence in verified Boston restaurant database, delivering accurate recommendations through natural language interaction.
 
+### **System Demo**
+![Query Understanding](docs/screenshots/query_understanding.png)
+*Natural language query: "pizza near harvard" - Analyst extracts cuisine, location mode (NEAR), and geocodes Harvard University automatically*
+
 ---
 
 ## 🧠 System Architecture
 
 ### **Multi-Agent Collaboration (MaRGen-Inspired)**
 
-8 specialized AI agents work together to understand queries, retrieve data, and generate personalized recommendations:
+![Agent Architecture](docs/AGENT_ARCHITECTURE.jpeg)
+*8 specialized AI agents collaborate: Analyst → Intent Guard → Retriever → Researcher → Writer → Reviewer → Review Summarizer, with Intent Understanding for conversational follow-ups*
 
 **Query Understanding Layer:**
 - **Analyst Agent (LLM)** - Extracts cuisine, location, budget, filters from natural language
@@ -63,6 +68,9 @@ Traditional restaurant discovery fails to deliver truly personalized, context-aw
 
 ## 🏗️ Data Architecture
 
+![Data Pipeline](docs/ARCHITECTURE_DIAGRAMS.jpeg)
+*Medallion architecture: Data flows from 4 external APIs through Bronze → Silver → Gold layers with dbt transformations*
+
 ### **Medallion Pipeline (dbt)**
 ```
 🥉 Bronze Layer → Raw data from APIs
@@ -88,6 +96,9 @@ Traditional restaurant discovery fails to deliver truly personalized, context-aw
 ### **1. Database-Grounded Recommendations**
 All restaurants verified in database - significantly reduces hallucination vs pure LLM approaches
 
+![Personalized Results](docs/screenshots/results_with_reviews.png)
+*Database-verified restaurants with scores, attributes, and LLM-analyzed customer review insights showing specific pros and cons*
+
 ### **2. Proprietary Safety Scoring**
 Custom scores from 800K+ health inspections - unique data not available elsewhere
 
@@ -102,10 +113,20 @@ Custom scores from 800K+ health inspections - unique data not available elsewher
 Simultaneous filtering: Dietary, Accessibility, Service, Meal Time, Special Needs
 
 ### **5. LLM Review Summarization**
-Analyzes reviews (99% coverage) to extract pros, cons, and key themes
+![Review Analysis](docs/screenshots/review_summary.png)
+*Review Summarizer agent analyzes Google Places reviews to extract actionable insights - honest pros and cons from real customers*
+
+Analyzes reviews (99% coverage) to extract:
+- 2-3 sentence summary of key themes
+- Specific pros customers appreciate
+- Honest cons to be aware of
 
 ### **6. Conversational Follow-ups**
-Natural refinement without starting over
+
+![Conversational AI](docs/screenshots/conversational_followup.png)
+*Natural follow-up questions maintain context - "cheap ones" understands previous results and re-sorts by price without starting over*
+
+Natural refinement without starting over - Intent Understanding agent maintains conversation context
 
 ---
 
@@ -198,13 +219,18 @@ LOCALEATS_AI/
 │   └── models/                  # Data models
 │       └── agent_message.py
 │
-└── docs/                        # Documentation
-    ├── ARCHITECTURE_DIAGRAMS.md
-    ├── USER_FLOW_DIAGRAM.md
-    ├── AGENT_ARCHITECTURE.md
-    ├── ISSUES_AND_SOLUTIONS.md
-    ├── FEATURES_AND_USECASES.md
-    └── EVALUATION_FRAMEWORK.md
+└── docs/                        # Documentation & Reports
+    ├── AGENT_ARCHITECTURE.jpeg       # Agent flow diagram
+    ├── ARCHITECTURE_DIAGRAMS.jpeg    # Data pipeline diagram
+    ├── Boston_Inspection_Profiling.docx
+    ├── GENAI_REPORT.docx            # Complete project report
+    ├── MBTA_ROUTES_Profiling.docx
+    ├── YelpRestaurantDataset.docx
+    └── screenshots/                 # Demo screenshots
+        ├── query_understanding.png
+        ├── results_with_reviews.png
+        ├── review_summary.png
+        └── conversational_followup.png
 ```
 
 ---
@@ -244,10 +270,9 @@ LOCALEATS_AI/
 ### **Vaibhavi Shinde**
 - dbt pipeline development & data quality - *with Ganesh*
 - Multi-agent architecture & testing - *with Ganesh*
+- **Analyst Agent development** - *lead role*
 - Agent refinement & debugging - *with Ganesh*
 - Streamlit application development & UI/UX - *with team*
-- **Reviewer agent optimization** - *with team*
-- Analyst Agent Development -*Lead Role*
 
 **All team members contributed equally to system testing, debugging, documentation, and presentation.**
 
@@ -256,11 +281,20 @@ LOCALEATS_AI/
 ## 📖 Documentation
 
 Complete technical documentation in `/docs`:
-- Architecture diagrams with Mermaid visualizations
-- Agent interaction patterns
-- Development challenges & solutions (10 major issues)
-- Feature specifications & use cases
-- Evaluation metrics & testing results
+- **GENAI_REPORT.docx** - Comprehensive project report including:
+  - Architecture diagrams and visualizations
+  - Development challenges & solutions (10 major issues)
+  - Feature specifications & use cases (8 features, 8 scenarios)
+  - Evaluation metrics & testing results
+- **Data Profiling Reports:**
+  - Boston Health Inspection profiling
+  - MBTA Routes profiling  
+  - Yelp Restaurant Dataset profiling
+- **Visual Diagrams:**
+  - Agent architecture flow (JPEG)
+  - Data pipeline architecture (JPEG)
+- **Demo Screenshots:**
+  - System demonstrations and UI examples
 
 ---
 
