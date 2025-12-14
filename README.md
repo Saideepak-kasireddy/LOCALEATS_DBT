@@ -99,7 +99,7 @@ All restaurants verified in database - significantly reduces hallucination vs pu
 ![Personalized Results](docs/screenshots/results_with_reviews.png)
 *Database-verified restaurants with scores, attributes, and LLM-analyzed customer review insights showing specific pros and cons*
 
-### **2. Proprietary Safety Scoring**
+### **2. Custom Safety Scoring**
 Custom scores from 800K+ health inspections - unique data not available elsewhere
 
 ### **3. Intelligent Location Understanding**
